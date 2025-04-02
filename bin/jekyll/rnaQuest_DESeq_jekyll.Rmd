@@ -438,7 +438,13 @@ cat(paste0("<p><strong>Table 1:</strong> These are the results of the differenti
 </script>
 ```
 
+#### Test test table
 
+```{=html}
+<iframe src="https://rpevey.github.io/rnaQuest/results/resTable1.html"
+        width="100%" height="600" style="border: 1px solid #ccc; border-radius: 6px;">
+</iframe>
+```
 
 
 ### Gene expression plots
