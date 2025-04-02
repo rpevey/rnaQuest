@@ -1,0 +1,537 @@
+---
+title: "RNA Quest: Rethinking RNA-Seq reports through reanalysis of previously published neuronal transcriptomes from epilepsy patients"
+author: "Ryan Pevey"
+date: "`r format(Sys.time(), '%m/%d/%y')`"
+output:
+  html_document: 
+    highlight: tango
+    code_folding: hide
+    toc: true
+    toc_float: true
+    fig_caption: true
+    df_print: kable
+    fig_width: 10
+    fig_height: 8
+  html_notebook: 
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**If you're reading this right now, this is a rough draft and I'm working on outputting the final post. Feel free to check back in or drop me a message or comment and I can keep you posted on when I'm done.**
+
+**Also welcome to evolio, I hope you enjoy the experience.**
+
+# Intro
+
+Introduce the problem of reporting and the gap in communication between bioinformaticists and biologists. I sit at this nexus, with training and experiencce in boths worlds and I can act as a liason between the two.
+
+# Summary
+
+This reports the example results of the differential expression analysis for the Pai et al. epilepsy neurons dataset. The dataset consists of three temporal lobe control post-mortem samples (TL), and three temporal lobe with epilepsy patient samples (TLE). In the original paper, four populations of cells were isolated from the samples via Flourescence activated cell sorting (FACS). The main paper focused on glial cells but here I've focused on the neuronal isolates.
+
+**Results summary text here**
+
+# Data management
+
+The analysis starts with loading all of the proper software and data files for downstream analysis. If you're not a programmer and you've ever been curious about the steps that go into this type of analysis click on the buttons labelled 'Show' and it will expand the code that goes into each step. It's also worth it to note that this script is only the very last stage of the analysis. I started by downloading the fastq files for each sample from the NCBI website, then aligned reads to the reference genome and produced a set of counts files which contain the number of reads counted for each genetic feature in the reference transcriptome. Those counts files are the input files for this analysis. If you are not a biologist, I've tried to make this report focused on their viewpoint, to help facilitate a deeper exploration of the dataset that we've created for them.
+
+### Load libraries
+
+```{r init, message=FALSE, echo=TRUE, warning=FALSE}
+library(ggplot2)
+library(limma)
+library(Glimma)
+library(viridis)
+# library(AnnotationDbi)
+# library(org.Hs.eg.db)
+library(DESeq2)
+library(treemap)
+library(vsn)
+# library(plotly)
+library(pheatmap)
+library(EnhancedVolcano)
+# library(htmlwidgets)
+library(kableExtra)
+library(DT)
+```
+
+### Read in datasets
+
+``` {r Datasets, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+#Import read count matrix
+dat <- read.delim('../../data/merged.tsv', header = TRUE, sep="\t", check.names = FALSE)
+
+#Remove special tagged rows, the first four, from the head of dat.
+dat <- dat[5:length(dat[,1]),]
+#Extract Ensembl ID and gene symbols
+geneID <- as.data.frame(cbind(rownames(dat), dat$gene_symbols))
+colnames(geneID) <- c('EnsID', 'gene_symbols')
+dat <- dat[,2:7]
+
+#Import sample metadata.
+metadata <- read.delim('../../data/SraRunMetadata.csv', header=TRUE, sep=",")
+
+#Metadata condition as factor
+metadata$condition <- factor(metadata$condition)
+levels(metadata$condition) <- c('TL','TLE')
+metadata$ID <- c('Ctrl1', 'Ctrl2', 'Ctrl3', 'TLE1', 'TLE2', 'TLE3')
+
+#Create sample information table
+coldata <- metadata[,c('ID','condition', 'Run')]
+rownames(coldata) <- metadata$ID
+#Assign row names of coldata to column names of dat
+colnames(dat) <- rownames(coldata)
+
+#Load RDS files for following code chunk
+dds <- readRDS('../../bin/dds_DE_TL-TLE.rds')
+
+#Import results tables
+resTable <- read.csv(paste0('../../results/','TL_TLE_allGenes_DEresults.csv'), header=TRUE)
+```
+
+### Create Differential expression object
+
+```{r DE, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE, eval=FALSE}
+#This block of code is not executed, but provides the details of how the DESeq object (dds) was created.
+#Create sample information table
+coldata <- metadata[,c('condition','ID','Run')]
+rownames(coldata) <- metadata$SampleID
+colnames(dat) #<- metadata$SampleID
+
+#Create DESeqDataSet object
+dds <- DESeqDataSetFromMatrix(countData = dat,
+                              colData = coldata,
+                              design = ~ condition)
+dds
+
+#Pre-filter low count genes
+#Smallest group size is the number of samples in each group (3 in this dataset).
+smallestGroupSize <- 3
+keep <- rowSums(counts(dds) >= 10) >= smallestGroupSize
+dds <- dds[keep,]
+
+#Differential expression analysis
+dds <- DESeq(dds)
+#Remove nonconverged genes
+dds <- dds[which(mcols(dds)$betaConv),]
+```
+
+## Exploratory data analysis
+
+Exploratory Data Analysis (EDA) is the process of visually and statistically examining data to identify patterns, trends, and potential issues before formal analysis. It helps ensure data quality, detect outliers, and guide analytical decisions. If you aren't doing the analyses yourself, you might normally not even be presented these figures. But they're important sanity checks to ensure data quality.
+
+### All samples total gene counts
+
+Gene counts across all samples are shown both before and after normalization. The first plot illustrates that raw counts are already within a comparable range across samples. Normalization further refines the data, ensuring consistency for downstream analysis, as seen in the second plot.
+
+```{r allCounts, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+boxplot(log2(counts(dds, normalized = FALSE)+1), axes = FALSE, ylab = 'log2 counts')
+axis(1, labels = FALSE, at = c(seq(1,40,1)))
+axis(2, labels = TRUE)
+title('Non-normalized Gene counts')
+text(x = seq_along(colnames(dds)), y = -2, labels = colnames(dds), 
+     adj = 0.5,
+     xpd = TRUE,
+     cex = 0.75)
+
+boxplot(log2(counts(dds, normalized = TRUE)+1), axes = FALSE, ylab = 'log2 counts')
+axis(1, labels = FALSE, at = c(seq(1,40,1)))
+axis(2, labels = TRUE)
+title('Normalized Gene counts')
+text(x = seq_along(colnames(dds)), y = -2, labels = colnames(dds), 
+     adj = 0.5,
+     xpd = TRUE,
+     cex = 0.75)
+```
+
+### Plot dispersion estimates
+
+A diagnostic plot of how well the data fits the model created by DESeq2 for differential expression testing. Good fit of the data to the model produces a scatter of points (black and blue) around the fitted curve (red). Low expressing genes, with counts below 10 reads across all samples, have been filtered out for computational efficiency.
+
+```{r dispersions, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+#Plot dispersion estimates, good fit of the data to the model produces a scatter of points around the fitted curve.
+plotDispEsts(dds)
+title('Dispersion estimates')
+```
+
+### Gene Biotype treemap for all genes
+
+The treemap below shows the relative proportion of each gene biotype for all genes in the dataset. The area of the rectangle is proportional to the percentage of each biotype. The majority are protein coding which is normal, but protein coding genes make up a significantly higher proportion of differentially expressed genes (right figure).
+
+```{r treemapAll, results='asis', tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+biotype <- data.frame(table(mcols(dds)$GENETYPE))
+biotype$Var1 <- gsub('_',' ',biotype$Var1)
+biotype <- biotype[order(biotype$Freq, decreasing = TRUE),]
+treemap(biotype,
+        index = 'Var1', 
+        vSize = 'Freq', 
+        type = 'index',
+        palette = viridis(length(biotype$Var1)),
+        aspRatio = 1.618/1,
+        title = '',
+        inflate.labels = TRUE,
+        lowerbound.cex.labels = 0
+)
+```
+
+```{r treeTableAll, results='asis', tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+biotype$Percent <- sapply(biotype$Freq, function(prop) round((prop/sum(biotype$Freq))*100, digits = 2))
+colnames(biotype) <- c('Biotype','Frequency','Percent')
+datatable(as.data.frame(biotype),
+          options = list(scrollX = TRUE, scrollCollapse = TRUE),
+          rownames = FALSE,
+          caption = paste0('These are the percent of each gene biotype for all genes in the dataset.'))
+```
+
+
+# Differential Expression Analysis Results
+
+## Temporal lobe neurons of Epilepsy patients (TLE) vs. Temporal lobe neurons of control post-mortem tissue (ref.)
+
+Alright, the meat of the analysis. The star of the show.
+*RESULTS SUMMARY TEXT*
+
+```{r DEresults, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+#Build results table
+#Set contrast groups, reference level should be listed last.
+contrast <- c('condition', 'TLE', 'TL')
+res <- results(dds,
+               contrast = contrast,
+               alpha = 0.05,
+               pAdjustMethod = 'BH')
+
+#Create significant results table ordered by fold change
+res05 <- res[which(res$padj < 0.05),]
+res05 <- res05[order(-res05$log2FoldChange),]
+```
+
+There are `r sum(res$padj < 0.05, na.rm=TRUE)` significant differentially expressed genes (FDR < 0.05) when comparing `r contrast[2]` to `r contrast[3]` as reference. `r length(which(res05$log2FoldChange > 0))` are up-regulated, `r length(which(res05$log2FoldChange < 0))` are down-regulated. The results of the DE analysis are summarized in the table below. Overall, roughly the same number of genes(~3%) are down-regulated compared to up-regulated genes.
+
+### Summary of results
+
+```{r summary1, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+summary(res)
+```
+
+### Up-regulated vs. Down-regulated genes
+
+```{r direction1, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+bar <- data.frame(direction = c('up','down'), genes = c(length(which(res05$log2FoldChange > 0)),length(which(res05$log2FoldChange < 0))))
+
+#Create stacked barplot
+ggplot(bar, aes(x=direction, y=genes, fill=direction)) +
+  geom_col(position = 'stack') +
+  scale_fill_viridis(2, begin = 0.3, end = 0.7, direction = 1, discrete = TRUE) +
+  labs(#title = "Number of up-regulated and down-regulated genes", 
+    x = NULL, 
+    y = "Number of genes", 
+    fill = "Direction") +
+  theme(#plot.title = element_text(hjust = 0.5),
+    legend.title = element_text(hjust = 0.5),
+    panel.grid.major = element_blank(), 
+    panel.background = element_blank()
+    ) +
+  scale_x_discrete(limits = rev)
+```
+
+### Results table: `r contrast[2]` vs. `r contrast[3]` (ref.)
+
+```{r resTable1, results='asis', tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+resTable[,3:7] <- round(resTable[,3:7], digits = 3)
+datatable(as.data.frame(resTable),
+          options = list(scrollX = TRUE, scrollCollapse = TRUE),
+          caption = paste0('Table 1: These are the statistically significant differentially expressed genes (FDR < 0.05) when comparing ',contrast[2],' and ',contrast[3],' (ref.). The columns are ordered by log2FoldChange with up-regulated genes at the top and down-regulted genes at the bottom. Numeric values listed to 3 significant digits. You can reorder the columns or search for a gene of interest by Ensembl ID or Gene name in the search bar in the top right of the table.'))
+```
+
+### Gene Biotype treemap `r contrast[2]` vs. `r contrast[3]` (ref.)
+
+The treemaps below show the relative proportion of each gene feature biotype for all of the significant genes in the above result table. Think of it like a pie chart, but better. The area of each of the rectangles is proportional to the percentage of each biotype when comparing `r contrast[2]` and `r contrast[3]` (ref.). The majority are protein coding however there are a large amount of lncRNA as well. TDP-43 is known to interact with miRNA as well.
+
+```{r treemap1, results='asis', tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+#Create treemap of gene biotypes
+resTable$GENETYPE <- as.factor(resTable$GENETYPE)
+biotype <- data.frame(table(resTable$GENETYPE))
+biotype$Var1 <- gsub('_',' ',biotype$Var1)
+biotype <- biotype[order(biotype$Freq, decreasing = TRUE),]
+treemap(biotype,
+        index = 'Var1', 
+        vSize = 'Freq', 
+        type = 'index',
+        palette = viridis(length(biotype$Var1)),
+        aspRatio = 1.618/1,
+        title = '',
+        inflate.labels = TRUE,
+        lowerbound.cex.labels = 0
+)
+```
+
+```{r treeTable1, results='asis', tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+biotype$Percent <- sapply(biotype$Freq, function(prop) round((prop/sum(biotype$Freq))*100, digits = 2))
+colnames(biotype) <- c('Biotype','Frequency','Percent')
+datatable(as.data.frame(biotype),
+          options = list(scrollX = TRUE, scrollCollapse = TRUE),
+          rownames = FALSE,
+          caption = paste0('These are the percent of each gene biotype when comparing ',contrast[2],' and ',contrast[3],' (ref.). The majority are protein coding however there are a large amount of lncRNA as well. TDP-43 is known to interact with miRNA as well.'))
+```
+
+### Log fold change shrinkage for visualization and ranking
+
+LFC shrinkage is an important regularization technique that is used to improve the reliability of fold change estimates, especially for low expression or high variability genes.
+
+```{r LFC1, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE, message=FALSE}
+#Log fold change shrinkage for visualization and ranking
+# plotMA(res, ylim=c(-3,3))
+resLFC <- lfcShrink(dds, contrast = contrast, type = 'ashr')
+# plotMA(resLFC, ylim=c(-3,3))
+res <- resLFC
+
+#Write out results table
+#Order results table by smallest p-value
+colnames(res)[5] <- 'FDR'
+res <- res[order(res$FDR),]
+```
+
+
+### Heatmaps
+
+Heatmaps provide a visual representation of gene expression across multiple samples, using color gradients to indicate expression levels. Clustering patterns can reveal relationships between genes and conditions, helping to identify co-regulated genes and distinct expression profiles.
+
+#### Up-regulated genes: `r contrast [2]` vs. `r contrast [3]` (ref.)
+
+These are the most up-regulated genes in the epilepsy neurons.
+
+```{r upHeat1, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+#rlog for visualization and ranking, generally works well for small datasets
+rld <- rlog(dds, blind = FALSE)
+#I'll use rld for visualization moving forward, because of the small sample size.
+
+#Data Quality assessment by sample clustering and visualization
+ann_colors = viridis(3, begin = 0, end = 1, direction = -1)
+ann_colors = list(Condition = c(TL=ann_colors[2], TLE=ann_colors[3]))
+df <- data.frame(Condition = colData(dds)[, 'condition'])
+rownames(df) <- colnames(dds)  # Ensure row names match colnames in heatmap
+# df$Condition
+
+#Declare expression matrix
+rld <- rld[,c(which(rld$condition==contrast[2]),which(rld$condition==contrast[3]))]
+# Extract sample names in the correct order (TL first, then TLE)
+ordered_samples <- colnames(rld)[order(rld$condition)]
+#Up-regulated genes
+geneNum <- 40
+selectUp <- assay(rld)[rownames(res05),ordered_samples][1:geneNum,]
+selectUpNames <- rownames(res05)[1:geneNum]
+selectUpNames <- which(rownames(dds)%in%selectUpNames)
+zUp <- (selectUp - rowMeans(selectUp))/sd(selectUp) #z-score
+pheatmap(zUp,
+         cluster_rows = TRUE,
+         show_rownames = TRUE,
+         cluster_cols = FALSE,
+         annotation_col = df,
+         annotation_colors = ann_colors,
+         labels_row = mcols(rld)$geneNew[selectUpNames],
+         color = viridis(n=256, begin = 0, end = 1, direction = -1))
+```
+
+</br>
+
+#### Down-regulated genes: `r contrast [2]` vs. `r contrast [3]` (ref.)
+
+These are the most down-regulated genes in the epilepsy neurons.
+
+```{r downHeat1, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+#Down-regulated genes
+geneNum <- 40
+selectDown <- assay(rld)[rownames(res05),ordered_samples][(length(res05[,1])-geneNum):length(res05[,1]),]
+selectDownNames <- rownames(res05)[(length(res05[,1])-geneNum):length(res05[,1])]
+selectDownNames <- which(rownames(dds)%in%selectDownNames)
+zDown <- (selectDown - rowMeans(selectDown))/sd(selectDown) #z-score
+pheatmap(zDown,
+         cluster_rows = TRUE,
+         show_rownames = TRUE,
+         cluster_cols = TRUE,
+         annotation_col = df,
+         annotation_colors = ann_colors,
+         labels_row = mcols(rld)$geneNew[selectDownNames],
+         color = viridis(n=256, begin = 0, end = 1, direction = -1))
+```
+
+</br>
+
+#### Up-regulated and Down-regulated genes: `r contrast [2]` vs. `r contrast [3]` (ref.)
+
+Both the top up-regulated and down-regulated genes in the dataset. 
+
+```{r upDownHeat1, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+#Up and Down-regulated genes
+selectUpDownNames <- c(selectUpNames,selectDownNames)
+zUpDown <- rbind(zUp, zDown) #z-score
+pheatmap(zUpDown,
+         fontsize = 8,
+         cluster_rows = TRUE,
+         show_rownames = TRUE,
+         cluster_cols = FALSE,
+         annotation_col = df,
+         annotation_colors = ann_colors,
+         labels_row = mcols(rld)$geneNew[selectUpDownNames],
+         color = viridis(n=256, begin = 0, end = 1, direction = -1))
+```
+
+
+### Volcano plot: `r contrast [2]` vs. `r contrast [3]` (ref.)
+
+```{r volcano1, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE, echo=FALSE}
+ens <- rownames(res)
+
+EnhancedVolcano(res, lab = rownames(res), x = 'log2FoldChange', y = 'pvalue',
+                title = bquote('TL vs. TLE'),
+                subtitle = NULL,
+                legendPosition = 'none',
+                boxedLabels = TRUE,
+                drawConnectors = TRUE,
+                colConnectors = 'black',
+                widthConnectors = 1.0,
+                arrowheads = FALSE,
+                col = c('grey30', viridis(3, direction = -1)), colAlpha = 0.7,
+                gridlines.major = FALSE,
+                gridlines.minor = FALSE)
+```
+
+### Gene expression plots
+
+Gene expression plots visualize how a gene's expression varies across conditions or samples, helping identify trends, variability, and potential differential expression. Higher expression levels indicate greater transcript abundance, while statistical comparisons (e.g., boxplots, dot plots) help assess significance between groups.
+
+#### Most up-regulated gene: `r contrast [2]` vs. `r contrast [3]` (ref.)
+
+``` {r maxPlot1, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+#Plot counts highest foldChange gene
+ens <- rownames(res)[which.max(res$log2FoldChange)]
+plt <- plotCounts(dds, gene = ens, intgroup = 'condition', normalized = TRUE, transform = TRUE, returnData=TRUE)
+y_max <- max(plt$count, na.rm = TRUE)
+padj_value <- format(res[ens, "FDR"],digits=3)
+
+p <- ggplot(plt, aes(x=condition, y=count, color = condition)) + 
+  geom_boxplot(color = 'black', outlier.shape = NA, width = 0.25) +
+  geom_point(cex = 5, position=position_jitter(w=0.1,h=0)) +
+  scale_color_viridis_d(begin = 0.75, end = 0.25, direction = 1) +
+  labs(title = bquote(italic(.(ens))),
+       y = 'Counts',
+       x = NULL) +
+  theme_bw() +
+  theme(text = element_text(size=30),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'none',
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.line = element_line('black'),
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_log10() +
+  annotate("text", x=1.5, y=y_max*1.50, label=paste("FDR =",padj_value)) +
+  annotate("segment", x = 1, xend = 2, y = y_max*1.30, yend = y_max*1.30) +
+  annotate("segment", x = 1, xend = 1, y = y_max*1.30, yend = y_max*1.20) +
+  annotate("segment", x = 2, xend = 2, y = y_max*1.30, yend = y_max*1.20)
+    
+p
+```
+
+</br>
+
+#### Most down-regulated gene: `r contrast [2]` vs. `r contrast [3]` (ref.)
+
+``` {r minPlot1, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+#Plot counts lowest foldChange gene
+ens <- rownames(res)[which.min(res$log2FoldChange)]
+plt <- plotCounts(dds, gene = ens, intgroup = 'condition', normalized = TRUE, transform = TRUE, returnData=TRUE)
+y_max <- max(plt$count, na.rm = TRUE)
+padj_value <- format(res[ens, "FDR"],digits=3)
+
+p <- ggplot(plt, aes(x=condition, y=count, color = condition)) + 
+  geom_boxplot(color = 'black', outlier.shape = NA, width = 0.25) +
+  geom_point(cex = 5, position=position_jitter(w=0.1,h=0)) +
+  scale_color_viridis_d(begin = 0.75, end = 0.25, direction = 1) +
+  labs(title = bquote(italic(.(ens))),
+       y = 'Counts',
+       x = NULL) +
+  theme_bw() +
+  theme(text = element_text(size=30),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'none',
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.line = element_line('black'),
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_log10() +
+  annotate("text", x=1.5, y=y_max*1.50, label=paste("FDR =",padj_value)) +
+  annotate("segment", x = 1, xend = 2, y = y_max*1.30, yend = y_max*1.30) +
+  annotate("segment", x = 1, xend = 1, y = y_max*1.30, yend = y_max*1.20) +
+  annotate("segment", x = 2, xend = 2, y = y_max*1.30, yend = y_max*1.20)
+
+p
+```
+
+</br>
+
+#### Plot notable genes of interest: `r contrast [2]` vs. `r contrast [3]` (ref.)
+
+Gene expression dashboard.
+
+```{r goi1, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+#Plot counts gene of interest
+geneOfInt <- 'LGR6'
+ens <- geneOfInt
+plt <- plotCounts(dds, gene = geneOfInt, intgroup = 'condition', normalized = TRUE, transform = TRUE, returnData=TRUE)
+y_max <- max(plt$count, na.rm = TRUE)
+padj_value <- format(res[ens, "FDR"],digits=3)
+
+p <- ggplot(plt, aes(x=condition, y=count, color = condition)) + 
+  geom_boxplot(color = 'black', outlier.shape = NA, width = 0.25) +
+  geom_point(cex = 5, position=position_jitter(w=0.1,h=0)) +
+  scale_color_viridis_d(begin = 0.75, end = 0.25, direction = 1) +
+  labs(title = bquote(italic(.(ens))),
+       y = 'Counts',
+       x = NULL) +
+  theme_bw() +
+  theme(text = element_text(size=30),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'none',
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.line = element_line('black'),
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_log10() +
+  annotate("text", x=1.5, y=y_max*1.50, label=paste("FDR =",padj_value)) +
+  annotate("segment", x = 1, xend = 2, y = y_max*1.30, yend = y_max*1.30) +
+  annotate("segment", x = 1, xend = 1, y = y_max*1.30, yend = y_max*1.20) +
+  annotate("segment", x = 2, xend = 2, y = y_max*1.30, yend = y_max*1.20)
+
+p
+```
+
+# Discussion
+
+Congrats, you can now hand your report off to collaborators.
+
+</br>
+
+# Methods
+
+**Pai et al. (DOI: 10.1186/s40478-022-01453-1) methods summary**
+
+My methods.
+
+## Scripts
+
+This is the R script that I used for this analysis, it has been ported into this report file. The following code is not executed, but is presented for transparency and reproducibility. Again, this is only the script that I used for this analysis. If you want all of the scripts for the full analysis you can find it on my github repository for this project here: <a href="https://github.com/rpevey/rnaQuest">rnaQuest at GitHub</a>.
+
+```{r DEscript, file='../../bin/rnaQuest_DESeq.R', eval=FALSE}
+```
+
+# Session info
+
+Session Info provides details about the computational environment used for this analysis, including the versions of R, loaded packages, and system settings. This ensures that the analysis can be reproduced accurately in the future, even if software updates change how certain functions behave.
+
+```{r sessionInfo, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+sessionInfo()
+```

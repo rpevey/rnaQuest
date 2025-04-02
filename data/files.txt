@@ -1,0 +1,6 @@
+SRR10446596.ReadsPerGene.out.tab
+SRR10446599.ReadsPerGene.out.tab
+SRR10446602.ReadsPerGene.out.tab
+SRR10446605.ReadsPerGene.out.tab
+SRR10446608.ReadsPerGene.out.tab
+SRR10446611.ReadsPerGene.out.tab

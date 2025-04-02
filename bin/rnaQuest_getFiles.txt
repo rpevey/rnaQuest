@@ -1,0 +1,61 @@
+# This script will walk you through downloading the fastq files for the tutorial to your linux computer locally for downstream processing. 
+# For this script each line should be copied into the terminal, line by line, for execution. Some of the steps take a long time so if you 
+# are executing this remotely over ssh terminal than nohup is your friend, it allows you to execute the line of code then disconnect at the
+# terminal so that the code can run in the background. An example executable bash script is also available in the github repository if you
+# have access to an HPC environment with SLURM (rnaQuest_getFiles_Slurm.sh).
+
+# For the purposes of this tutorial I have created a project directory with three subdirectories; bin/, data/, results/. Unless stated 
+# otherwise, the following code is executed in the data directory.
+# 	bin/ has all of the script files and reference files necessary for their execution. 
+# 	data/ houses all of the raw, intermediate, and processed data files for the project. 
+# 	results/ is the location for any output results files for downstream analysis.
+
+### Download necessary utilities
+# If you haven't downloaded it yet, use the following line of code to get the SRA toolkit.
+sudo apt install sra-toolkit  # For Ubuntu/Debian
+# OR
+conda install -c bioconda sra-tools  # If using Conda
+# Verify installation
+fastq-dump --version
+# Optional: install parallel utility to run some of the following commands in parallel and speed up execution
+sudo apt install parallel
+
+
+### Prefetch SRR accessions
+# Configure prefetch to save to the current working directory. Move to desired directory for download.
+vdb-config --prefetch-to-cwd
+
+# Especially if you're processing multiple marge files, parallelize the your commands with the following code.
+# You can download an accession list from NCBI's SRA run selector(https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA589589&o=acc_s%3Aa)
+# and select just the files for the NEUN+ sorted neurons. Or create an accession list text file (e.g. SRR_Acc_List.txt) with the name of
+# each accession number on a new line. This example file and the associated metadata file (SraRunTable.csv) is available on my github.
+nano ../bin/SRR_Acc_List.txt
+
+# Run prefetch in parallel, this may take awhile. The -v tag produces verbose execution messages, you can exclude that tag by preference.
+# Execution of the following line took about 10 minutes on my desktop computer.
+nohup cat ../bin/SRR_Acc_List.txt | parallel prefetch -v {} > ../bin/out/prefetch_output.log 2>&1 &
+nohup parallel prefetch -v {} < ../bin/SRR_Acc_List.txt > prefetch_output.log 2>&1 &
+# Or you can download each file individually
+# prefetch SRR10446596
+# prefetch SRR10446599
+# prefetch SRR10446602
+# prefetch SRR10446605
+# prefetch SRR10446608
+# prefetch SRR10446611
+
+## Convert the file into fastq for downstream processing
+# This step may take awhile. Execution of the following line took six hours on my desktop computer. Started at 2:15, ended at 8:00.
+nohup parallel fasterq-dump -v {} < ../bin/SRR_Acc_List.txt > ../bin/out/fasterq_output.log 2>&1 &
+# fasterq-dump SRR10446596
+# fasterq-dump SRR10446599
+# fasterq-dump SRR10446602
+# fasterq-dump SRR10446605
+# fasterq-dump SRR10446608
+# fasterq-dump SRR10446611
+
+# Verify that the files downloaded correctly
+ls -lh *.fastq.gz  # Ensure expected files exist and are approximately the right size (~10Gb each).
+
+# Clean up the directory for ease of handling and file size, the directory will go from ~120GB to 26GB.
+nohup gzip *.fastq > ../bin/out/fq-gzip_output.log 2>&1 &
+rm -rf SRR*/
