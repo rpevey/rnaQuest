@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RNA-Seq Table</title>
+  
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <!-- PapaParse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <!-- DataTables JS -->
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 1rem;
+    }
+
+    table {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<h2>RNA-Seq Differential Expression Results</h2>
+<table id="csvTable" class="display"></table>
+
+<script>
+  // CSV hosted on GitHub (raw view link)
+  const csvURL = "https://raw.githubusercontent.com/rpevey/rnaQuest/main/results/resTable1.csv";
+
+  Papa.parse(csvURL, {
+    download: true,
+    header: true,
+    complete: function(results) {
+      const data = results.data;
+      const columns = Object.keys(data[0]).map(key => ({ title: key, data: key }));
+
+      $('#csvTable').DataTable({
+        data: data,
+        columns: columns,
+        scrollX: true,
+        pageLength: 10
+      });
+    },
+    error: function(err) {
+      console.error("Error loading CSV:", err);
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -373,76 +373,13 @@ DT::datatable(as.data.frame(datTable),
           caption = paste0('Table 1: These are the results of the differential expression analysis when comparing ',status[2],' and ',status[1],' (ref.). The columns are ordered by log2FoldChange with up-regulated genes at the top and down-regulated genes at the bottom. Numeric values listed to 3 significant digits. An FDR is not calculated for non-significant results. You can reorder the columns or search for a gene of interest by Ensembl ID or Gene name in the search bar in the top right of the table.'), class = 'display')
 ```
 
-#### reacTable table
-
-```{r resTable2, results='asis', tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
-# Create reactable table
-reactable(
-  datTable,
-  searchable = TRUE,
-  pagination = TRUE,
-  highlight = TRUE,
-  striped = TRUE,
-  bordered = TRUE,
-  columns = list(
-    `log2FC` = colDef(align = "right"),
-    `Base Mean` = colDef(align = "right"),
-    `LFC SE` = colDef(align = "right"),
-    `p-value` = colDef(align = "right"),
-    `FDR` = colDef(align = "right")
-  ),
-  defaultPageSize = 25,
-  showPageSizeOptions = TRUE
-)
-
-cat(paste0("<p><strong>Table 1:</strong> These are the results of the differential expression analysis when comparing <em>", status[2], "</em> and <em>", status[1], " (ref.)</em>. The columns are ordered by log2FoldChange with up-regulated genes at the top and down-regulated genes at the bottom. Numeric values listed to 3 significant digits. An FDR is not calculated for non-significant results. You can search for a gene of interest by Ensembl ID or gene name using the search box above.</p>"))
-```
-
-#### GETable table
-
-```{=html}
-<!-- Load GETable -->
-<script src="https://glin.github.io/GETable/js/GETable.min.js"></script>
-
-<h4>Table 1: Differential Expression Results</h4>
-<div id="getable-resTable1"></div>
-<script>
-  GETable.init({
-    csv: "https://raw.githubusercontent.com/rpevey/rnaQuest/main/results/resTable1.csv",
-    element: "#getable-resTable1",
-    search: true,
-    sort: true,
-    pagination: true,
-    rowsPerPage: 25
-  });
-</script>
-```
-
-#### Test table
-
-```{=html}
-<!-- Load GETable -->
-<script src="https://glin.github.io/GETable/js/GETable.min.js"></script>
-
-<h4>GETable Test</h4>
-<div id="getable-test"></div>
-<script>
-  GETable.init({
-    csv: "https://people.sc.fsu.edu/~jburkardt/data/csv/hw_200.csv",
-    element: "#getable-test",
-    search: true,
-    sort: true,
-    pagination: true,
-    rowsPerPage: 10
-  });
-</script>
-```
-
 #### Test test table
 
+`r cat(paste0("<p><strong>Table 1:</strong> These are the results of the differential expression analysis when comparing <em>", status[2], "</em> and <em>", status[1], " (ref.)</em>. The columns are ordered by log2FoldChange with up-regulated genes at the top and down-regulated genes at the bottom. Numeric values listed to 3 significant digits. An FDR is not calculated for non-significant results. You can search for a gene of interest by Ensembl ID or gene name using the search box above.</p>"))`
+
 ```{=html}
-<iframe src="https://rpevey.github.io/rnaQuest/results/resTable1.html"
-        width="100%" height="600" style="border: 1px solid #ccc; border-radius: 6px;">
+<iframe src="https://rpevey.github.io/rnaQuest/resTable1.html"
+        width="100%" height="800" style="border: 1px solid #ccc; border-radius: 6px;">
 </iframe>
 ```
 
