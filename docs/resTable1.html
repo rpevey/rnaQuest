@@ -47,7 +47,8 @@
         data: data,
         columns: columns,
         scrollX: true,
-        pageLength: 10
+        pageLength: 10,
+		order: []  // use ordering of csv file, which is ordered by log2FC
       });
     },
     error: function(err) {

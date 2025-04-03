@@ -354,7 +354,7 @@ pheatmap(zUpDown,
 
 #### Results table: `r status[2]` vs. `r status[1]` (ref.)
 
-```{r resTable1, results='asis', tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+```{r resTable1, results='asis', tidy=TRUE, tidy.opts=list(width.cutoff=100), eval=FALSE}
 #Add significant column. If the FDR is NA or higher than 0.05, than 'No'.
 resTable$Significant <- ifelse(is.na(resTable$FDR) | resTable$FDR >= 0.05, "No", "Yes")
 datTable <- cbind(resTable[,2:7],resTable[,16],resTable[,9],resTable[,11:14])
@@ -366,20 +366,18 @@ datTable <- datTable[order(datTable$log2FoldChange, decreasing = TRUE),]
 rownames(datTable) <- NULL
 colnames(datTable) <- c('Gene', 'Base Mean', 'log2FC', 'LFC SE', 'p-value', 'FDR', 'Significant?', 'Ensembl ID', 'Symbol', 'MAP locus', 'Gene type', 'Gene description')
 write.csv(datTable, file = "../../results/resTable1.csv", row.names = FALSE)
+#resTable1.csv hosted on github and embedded as an iframe below.
 #Import datTable
 # datTable <- read.csv(paste0('../../results/','resTable1.csv'), header=TRUE)
-DT::datatable(as.data.frame(datTable),
-          options = list(scrollX = TRUE, scrollCollapse = TRUE),
-          caption = paste0('Table 1: These are the results of the differential expression analysis when comparing ',status[2],' and ',status[1],' (ref.). The columns are ordered by log2FoldChange with up-regulated genes at the top and down-regulated genes at the bottom. Numeric values listed to 3 significant digits. An FDR is not calculated for non-significant results. You can reorder the columns or search for a gene of interest by Ensembl ID or Gene name in the search bar in the top right of the table.'), class = 'display')
 ```
 
-#### Test test table
-
-`r cat(paste0("<p><strong>Table 1:</strong> These are the results of the differential expression analysis when comparing <em>", status[2], "</em> and <em>", status[1], " (ref.)</em>. The columns are ordered by log2FoldChange with up-regulated genes at the top and down-regulated genes at the bottom. Numeric values listed to 3 significant digits. An FDR is not calculated for non-significant results. You can search for a gene of interest by Ensembl ID or gene name using the search box above.</p>"))`
+<p style="font-size: 0.9rem; text-align: center;">
+  <strong>Table 1:</strong> These are the results of the differential expression analysis when comparing,<em>`r status[2]`</em> and<em>`r status[1]` (ref.)</em>. The columns are ordered by log2FoldChange with up-regulated genes at the top and down-regulated genes at the bottom. Numeric values listed to 3 significant digits. An FDR is not calculated for non-significant results. You can search for a gene of interest by Ensembl ID or gene name using the search box above.
+</p>
 
 ```{=html}
 <iframe src="https://rpevey.github.io/rnaQuest/resTable1.html"
-        width="100%" height="800" style="border: 1px solid #ccc; border-radius: 6px;">
+        width="100%" height="800" style="border: none; border-radius: 6px; background-color: #f0f0f0;">
 </iframe>
 ```
 
