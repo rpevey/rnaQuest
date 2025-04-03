@@ -91,9 +91,6 @@ library(pheatmap)
 library(EnhancedVolcano)
 # library(htmlwidgets)
 library(kableExtra)
-library(DT)
-library(reactable)
-library(getable)
 library(tibble)
 
 ###Read in datasets
@@ -372,12 +369,12 @@ write.csv(datTable, file = "../../results/resTable1.csv", row.names = FALSE)
 ```
 
 <p style="font-size: 0.9rem; text-align: center;">
-  <strong>Table 1:</strong> These are the results of the differential expression analysis when comparing,<em>`r status[2]`</em> and<em>`r status[1]` (ref.)</em>. The columns are ordered by log2FoldChange with up-regulated genes at the top and down-regulated genes at the bottom. Numeric values listed to 3 significant digits. An FDR is not calculated for non-significant results. You can search for a gene of interest by Ensembl ID or gene name using the search box above.
+  <strong>Table 1:</strong> These are the results of the differential expression analysis when comparing, <em>`r status[2]`</em> and <em>`r status[1]`</em> (ref.). The columns are ordered by log2FoldChange with up-regulated genes at the top and down-regulated genes at the bottom. Numeric values listed to 3 significant digits. An FDR is not calculated for non-significant results. You can search for a gene of interest by Ensembl ID or gene name using the search box above.
 </p>
 
 ```{=html}
 <iframe src="https://rpevey.github.io/rnaQuest/resTable1.html"
-        width="100%" height="800" style="border: none; border-radius: 6px; background-color: #f0f0f0;">
+        width="100%" height="750" style="border: none; border-radius: 6px; background-color: #f0f0f0;">
 </iframe>
 ```
 
@@ -662,6 +659,10 @@ treemap(biotype_sig,
 ```
 
 
+```{=html}
+<div style="background: #f0f0f0; padding: 1em; border-radius: 8px; max-width: 900px; margin: 2em auto;">
+```
+
 ```{r treeTable1, results='asis', tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
 biotype <- merge(biotype_all, biotype_sig, by = 'Var1')
 colnames(biotype) <- c('biotype','AllGenes','SigGenes')
@@ -679,15 +680,37 @@ biotype <- biotype[,c(1,2,4,3,5)]
 # Compute total counts
 total_all <- sum(biotype$AllGenes)  # Total genes
 total_sig <- sum(biotype$SigGenes)  # Total significant genes
-datatable(as.data.frame(biotype),
-          options = list(scrollX = TRUE, scrollCollapse = TRUE),
-          rownames = FALSE,
-          caption = paste0('These are the percent of each gene biotype when comparing ',status[2],' and ',status[1],' (ref.). The majority are protein coding, a proportion that increases sees a statistically significant increase in genes that are significantly differentially expressed.'))
+# Rename columns
+biotable <- biotype
+colnames(biotable) <- c("Biotype", "All Genes", "Proportion (All)", "Significant Genes", "Proportion (Sig.)")
+
+# Create the static table
+biotable %>%
+  kbl(
+    format = "html",
+    align = c('l','r','r','r','r'),
+    row.names = FALSE,
+    caption = paste0(
+      "Table 2: Proportion of each gene biotype when comparing ",
+      status[2], " and ", status[1], " (ref.). The majority are protein-coding, which make up an even higher proportion of the significantly differentially expressed genes."
+    )
+  ) %>%
+  kable_styling(
+    full_width = TRUE,
+    bootstrap_options = c("striped", "hover", "condensed"),
+    font_size = 13,
+    position = "center"
+  ) %>%
+  column_spec(2:5, width = "8em", border_left = TRUE, border_right = TRUE)
 # Compute expected counts under the null hypothesis
 biotype$Expected <- total_sig * (biotype$AllGenes / total_all)
 chi_sq_test <- chisq.test(biotype$SigGenes, p = biotype$AllGenes / total_all, rescale.p = TRUE)
 # Print results
 # print(chi_sq_test)
+```
+
+```{=html}
+</div>
 ```
 
 There is a statistically significant difference in the proportion of gene types when comparing the full dataset to the subset of differentially expressed genes (X^2^ = `r round(chi_sq_test$statistic, digits = 3)`, df = `r chi_sq_test$parameter`, *p*-value = `r formatC(chi_sq_test$p.value, format = 'e', digits = 3)`).
