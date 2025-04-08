@@ -62,7 +62,7 @@ library(DT)
 
 ``` {r Datasets, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
 #Import read count matrix
-dat <- read.delim('../../data/merged.tsv', header = TRUE, sep="\t", check.names = FALSE)
+dat <- read.delim('../data/merged.tsv', header = TRUE, sep="\t", check.names = FALSE)
 
 #Remove special tagged rows, the first four, from the head of dat.
 dat <- dat[5:length(dat[,1]),]
@@ -72,7 +72,7 @@ colnames(geneID) <- c('EnsID', 'gene_symbols')
 dat <- dat[,2:7]
 
 #Import sample metadata.
-metadata <- read.delim('../../data/SraRunMetadata.csv', header=TRUE, sep=",")
+metadata <- read.delim('../data/SraRunMetadata.csv', header=TRUE, sep=",")
 
 #Metadata condition as factor
 metadata$condition <- factor(metadata$condition)
@@ -86,10 +86,10 @@ rownames(coldata) <- metadata$ID
 colnames(dat) <- rownames(coldata)
 
 #Load RDS files for following code chunk
-dds <- readRDS('../../bin/dds_DE_TL-TLE.rds')
+dds <- readRDS('../bin/dds_DE_TL-TLE.rds')
 
 #Import results tables
-resTable <- read.csv(paste0('../../results/','TL_TLE_allGenes_DEresults.csv'), header=TRUE)
+resTable <- read.csv(paste0('../results/','TL_TLE_allGenes_DEresults.csv'), header=TRUE)
 ```
 
 ### Create Differential expression object
@@ -525,7 +525,7 @@ My methods.
 
 This is the R script that I used for this analysis, it has been ported into this report file. The following code is not executed, but is presented for transparency and reproducibility. Again, this is only the script that I used for this analysis. If you want all of the scripts for the full analysis you can find it on my github repository for this project here: <a href="https://github.com/rpevey/rnaQuest">rnaQuest at GitHub</a>.
 
-```{r DEscript, file='../../bin/rnaQuest_DESeq.R', eval=FALSE}
+```{r DEscript, file='../bin/rnaQuest_DESeq.R', eval=FALSE}
 ```
 
 # Session info
