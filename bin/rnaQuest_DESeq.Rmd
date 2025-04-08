@@ -324,7 +324,7 @@ geneNum <- 40
 selectUp <- assay(rld)[rownames(res05),ordered_samples][1:geneNum,]
 selectUpNames <- rownames(res05)[1:geneNum]
 selectUpNames <- which(rownames(dds)%in%selectUpNames)
-zUp <- (selectUp - rowMeans(selectUp))/sd(selectUp) #z-score
+zUp <- (selectUp - rowMeans(selectUp))/rowSds(selectUp) #z-score
 pheatmap(zUp,
          cluster_rows = TRUE,
          show_rownames = TRUE,
@@ -347,7 +347,7 @@ geneNum <- 40
 selectDown <- assay(rld)[rownames(res05),ordered_samples][(length(res05[,1])-geneNum):length(res05[,1]),]
 selectDownNames <- rownames(res05)[(length(res05[,1])-geneNum):length(res05[,1])]
 selectDownNames <- which(rownames(dds)%in%selectDownNames)
-zDown <- (selectDown - rowMeans(selectDown))/sd(selectDown) #z-score
+zDown <- (selectDown - rowMeans(selectDown))/rowSds(selectDown) #z-score
 pheatmap(zDown,
          cluster_rows = TRUE,
          show_rownames = TRUE,

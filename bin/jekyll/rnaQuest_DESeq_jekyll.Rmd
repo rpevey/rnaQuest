@@ -52,27 +52,41 @@ iframe {
 
 by Ryan Pevey
 
-**If you're reading this right now, this is a rough draft and I'm working on outputting the final post. Feel free to check back in, drop me a message, or comment at the bottom of the page and I can keep you posted on when I'm done.**
+## An interesting problem in Omics research
 
-**Also welcome to evolio, I hope you enjoy the experience.**
+I’ve noticed something when I work on big omics projects and I know that I’m not the first. Typically there are two teams of people on any given project, or more if it’s a multi-omics project. The bioinformaticists that are performing the statistical analysis, generating output results tables and figure creation (so many figures). As well as the biologists, who may have generated the biological samples that were processed, and will typically handle the downstream interpretation of the omics results and place them in a biological context. Often, but not always, there is a discrepancy between the background and training of these groups where the bioinformaticists tend to come from computer science, statistics or applied math fields. Of course many of them have coursework and training in biology, this isn’t an attack on bioinformaticists or the good work that they do, and it’s becoming more common that they have explicit training in biology or even a degree in biostatics or bioinformatics as these programs proliferate in academics. But few of them have much experience doing wet bench science like their collaborators. Also, many of them work on many projects within many biological models and contexts so they don’t always get the chance to dive deep into a single area of biology.
 
-# Intro {#intro}
+The opposite is normally true of the biologists on the project. Most of us are generalists in bench science with a single or a small handful of specialty bench skills, and a deep understanding of a typically very narrow field of biology. Few of us have any programming skills to speak of, nor training in how to understand the results of big data projects. Again, this isn’t meant to be an attack on biologists, just stating the reality of the differences in viewpoint and experience between the two groups of people.
 
-Introduce the problem of reporting and the gap in communication between bioinformaticists and biologists. I sit at this nexus, with training and experiencce in boths worlds and I can act as a liason between the two. If you are not a biologist, I've tried to make this report focused on the viewpoint of the biologist, to help facilitate a deeper exploration of the dataset for them.
+This discrepancy in background leads to a second discrepancy. Where some of the people have deep intimate access to the data, and some of the people have a deep intimate knowledge of the biology underlying the data, and those typically are not the same people. This is the very nature of team based projects, but still, a gap in knowledge between groups can lead to a gap in communication between groups. This can have outsized impacts on the outcome of the project.
 
-# Summary {#summary}
+To put it another way, in large-scale Omics projects, a persistent challenge lies in bridging the communication gap between bioinformaticists who analyze the data and biologists who interpret it. While statistical outputs and processed data files contain a wealth of insight, they often lack the intuitive structure or clarity needed for effective biological interpretation. As a result, important findings may be overlooked or misinterpreted, underscoring the need for more accessible and integrative reporting strategies. I don’t think that this is an easy problem either or caused by a lack of effort. All of the people involved are highly intelligent and highly trained. I think this is just a function of the results being large and complex; and everybody has limited time and attention to give to it. Omics results are a firehose, and the person on the receiving end of it is normally only equipped with a bucket to catch as much water as they can.
 
-This reports the differential expression results of my re-analysis for this really nice RNA-Seq dataset from the neurons of patients with epilepsy (DOI: <a href="https://doi.org/10.1186/s40478-022-01453-1">Pai et al., 2022</a>). The original publication is mostly concerned with transcriptional alterations in glial cells but I'm electing to reanalyze their neuronal samples for a few reasons. First, to highlight the usefulness of previously published data. Second, so that I am not just retreading the same story over again. Third, and most selfishly, my experience lies mainly with neuronal datasets so I'm most familiar with this output. No offense to glia, they are great!
+## It's about the exploration, not just the destination
 
-The dataset consists of bulk RNA-Seq reads from three temporal lobe control post-mortem samples (TL), and three temporal lobe with epilepsy patient samples (TLE). In the original paper, four populations of cells were isolated from the samples via Flourescence Activated Cell Sorting (FACS).
+Some people, however, do have skills and expertise in both worlds. I sit at this nexus, with training and experience in bench science and bioinformatics. My degrees are in Biology and Neuroscience and I have over a decade of experience at the bench and the computer terminal (mainly RNA-Seq and scRNA-Seq). Those of us with these dual skills sets are in a relatively unique position where we can act as a liaison between the teams. We can discuss the minutiae of software choices and sharing analysis scripts with the one team, or the particulars of reagent selection and sharing bench protocols with the other team.
 
-**Results summary text here**
+I’m proposing a pretty simple solution here for a hard problem, which is a report structure for Omics results that really facilitates the ability of biologists to explore the dataset in an interactive way. The report includes the core results figures and tables that typically are provided to collaborators, but in a single interactive web portal that acts as a clearinghouse for the results of the analysis. It’s the same results, but formatted in a way that really draws in the biologist for a more independent search of the dataset.
 
-### Differential expression analysis
+To that end I’ve created the below report on an analysis of RNA-Seq data that I performed at home as an example of the kind of reporting strategy that I think could facilitate this kind of exploration. I want to crack open the black box of omics methodologies for biologists so that you can see what is happening behind the scenes when you send samples off to the core for sequencing, or when you send an email to the bioinformaticists to ask for expression plots of a list of genes of interest. Now, they can just… look it up themselves. I believe this approach increases transparency and trust among collaborators, while increasing the biologists ability to engage with the data on a deeper level than is typically possible. Also, given the didactic focus of the forum here, I can afford to be more casual than in a traditional publication. So forgive me the informal tone of a lot of this page.
+If you’re a biologist, hopefully you come out of this exercise with a better appreciation for the work that the programmers do and a better understanding of how they produce their datasets and results files. There is a common misunderstanding in biology that “the computer does all the work”. Don’t be that person. This is a toy example with a small sample size and it still took me weeks of work. Hopefully this report highlights just how much effort goes into these kinds of analyses and the format presents a more intuitive way to understand those results.
 
-I started this project by downloading the fastq files for each sample from NCBI's, Gene Expression Omnibus (<a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE140393">GEO accession: GSE140393</a>), then aligned reads to the reference genome and produced a set of counts files which contain the number of reads counted for each genetic feature in the reference transcriptome. Those counts files are the input files for this differential expression analysis. Which continues with loading all of the proper software and data files for downstream analysis. If you're not a programmer and you've ever been curious about the steps that go into this type of analysis click on the buttons labelled 'Click to expand code' and it will expand the code that goes into each step. It's also worth it to note that this script is only the very last stage of the analysis.
+If you are not a biologist, I think there is a relatively straightforward track that you can take to help bridge this gap that I’ve highlighted. I’m generally in favor of transparency in science, but I think the more you can facilitate your biologist collaborators to engage with the data and results that you’ve created the better. The standard output of results, like excel files and static figures showing top hits or general trends are great, I’m not saying you should stop providing a zip file of results. But I’ve seen many biologists excitedly receive their data from the core, only to be stuck in fear asking the question, “How am I supposed to make any conclusions from a 20,000 row excel file?”. Spending the time to make an engaging and visually appealing clearinghouse of results will also help them explore the data in a way that an excel file will just never provide, hopefully they even find it fun! Not to mention the polish and professional flair this kind of effort can lend to your output. Maybe this project can provide a better framework for reporting results to collaborators, I have a standalone html file (here) that could be provided to a biologist as an entry point to understanding the results, and just bundle it alongside the standard results files that you normally provide. That also provides privacy for unpublished data as nothing is hosted online, people can just download the html file locally and open it in the browser on their computer. If you decide to make the portal public later as part of the publication process, you’ve now just made a fancy web portal for anyone to explore your data with.
 
-If you want all of the scripts for the full analysis including the preprocessing of the data before the differential expression, you can find it on my github repository for this project here: <a href="https://github.com/rpevey/rnaQuest">RNA Quest at GitHub</a>.
+Maybe, you’re new to RNA-Seq analysis and you’ve come across this post as you’re doing your first analysis. If that’s the case, I hope I can convince you early in your journey to develop good communication skills. As a data scientist, the results files and reports that you produce is your work product and the better you are at presenting them the more your collaborators will be able to mine from them. Omics datasets are a rich resource, but often they are not fully mined for data purely because of this gap in communication or limited time and resources. That’s a shame in my mind, because the amount of effort that goes into producing any one of these datasets can be enormous and there are over half of a million RNA-Seq datasets publicly available on NCBI resources (<a href="https://doi.org/10.1093/gigascience/giz022">Zeimann, et al. 2019</a>). The potential of this as a supply of data is immense and it grows every single day. Many groups always do a good job of all of this, but I think as a field we can do better on both sides. And everyone benefits from it.
+
+## Summary of dataset
+
+This webpage reports the differential expression results of my re-analysis for this really nice RNA-Seq dataset from the neurons of patients with epilepsy (<a href="https://doi.org/10.1186/s40478-022-01453-1">Pai et al., 2022</a>). The original publication is mostly concerned with transcriptional alterations in glial cells but I’m electing to reanalyze their neuronal samples for a few reasons. First, to highlight the usefulness of previously published data. Second, so that I am not just retreading the same story over again. Third, and most selfishly, my experience lies mainly with neuronal datasets so I’m most familiar with this output. No offense to glia, they are great, but I’m really mostly focused on the reporting of results here!
+
+The dataset consists of bulk RNA-Seq reads from three temporal lobe control post-mortem samples (TL), and three temporal lobe with epilepsy patient samples (TLE). In the original paper, four populations of cells were isolated from the samples via Fluorescence Activated Nuclei Sorting (FANS), one of those populations was the neurons and those are the samples that I’m working with here.
+
+## Differential expression analysis
+
+Briefly, I started this project by downloading the fastq files for each sample from NCBI’s, Gene Expression Omnibus (<a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE140393">GEO accession: GSE140393</a>), then aligned the reads to the reference genome and produced a set of counts files which contain the number of reads counted for each genetic feature in the reference annotation (ensemble: <a href="https://ensembl.org/Homo_sapiens/Info/Index">GRCh38 release 113</a>). Those counts files are the input files for this differential expression analysis. Which continues with loading all of the proper software and data files into R for processing with DESeq2.
+
+All of the scripts for my full analysis pipeline, including downloading and preprocessing of the data before the differential expression analysis, are on my GitHub repository for this project here: <a href="https://github.com/rpevey/rnaQuest">RNA Quest at GitHub</a>. If you’re not a programmer and you’ve ever been curious about the steps that go into the differential expression analysis, then click on the buttons labelled ‘Click to expand code’ and it will reveal the code that goes into each step. Just remember that this script is only the very last stage of the analysis. I’ve also included extensive comments in the code so hopefully you can understand something of it even if you have no programming experience. Note, the control is the reference group, that’s hopefully obvious but I want to be explicit about it. All statistical analysis results are epileptic neurons referenced in comparison to the neurons of control patients.
+
 
 ```{r init, message=FALSE, echo=TRUE, warning=FALSE}
 library(ggplot2)
@@ -164,18 +178,16 @@ res05 <- res05[order(-res05$log2FoldChange),]
 status <- c('Control', 'Epilepsy')
 ```
 
-### Differential Expression Analysis Results
 
-#### Temporal lobe neurons of `r status[2]` patients (TLE) vs. Temporal lobe neurons of `r status[1]` post-mortem tissue (ref.)
+### Temporal lobe neurons of `r status[2]` patients (TLE) vs. Temporal lobe neurons of `r status[1]` post-mortem tissue (ref.) differential expression analysis results
 
-Alright, the meat of the analysis. The star of the show. Keep in mind that there is a fair amount of exploratory analysis and quality control that goes into the analysis at this stage to ensure that the data is processed properly (e.g. normalization, regularization). Those steps were performed here but are presented later down the page so that we can jump right to the exciting part of the results.
-*RESULTS SUMMARY TEXT*
+Alright, the meat of the report, the results. Keep in mind that there is a fair amount of exploratory analysis and quality control that goes into the analysis at this stage to ensure that the data is processed properly (e.g. normalization, regularization). Those steps were performed here but are presented further down the page so that we can jump right to the exciting part: the results.
 
 There are `r sum(res$padj < 0.05, na.rm=TRUE)` significant differentially expressed genes (FDR < 0.05) when comparing **`r status[2]`** to **`r status[1]`** as reference. `r length(which(res05$log2FoldChange > 0))` are up-regulated, `r length(which(res05$log2FoldChange < 0))` are down-regulated. The results of the DE analysis are summarized in the table below. Overall, roughly the same number of genes(~3%) are down-regulated compared to up-regulated genes.
 
 #### Summary of results
 
-```{r summary1, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+```{r summary, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
 summary(res)
 ```
 
@@ -183,9 +195,9 @@ summary(res)
 ## Gene expression dashboard
 </div>
 
-I've made this interactive gene expression dashboard below to help you explore the dataset. Mouse over the genes on the volcano plot to explore the highlighted significant genes. If you want to see the expression profile for that specific gene then enter it, or whatever your favorite gene is, into the gene expression plot on the right. If the gene is statistically significant, than an FDR value and bracket indicating significance are automatically populated. If not then the words "No DE result" will appear instead. If you want to restrict the gene expression plot to only display significant genes than toggle the checkbox beneath the plot. You can see the data used to create the plot with the table beneath it or download it by clicking the download graph data button to capture it as a csv. Note that this is log transformed expression data for visualization purposes, not read counts. So interpret the values accordingly.
+I’ve made this interactive gene expression dashboard below to help you explore the dataset. Mouse over the genes on the volcano plot to explore the highlighted significant genes. If you want to see the expression profile for that specific gene then enter it, or your favorite gene, into the gene expression plot on the right. If the gene is statistically significant, than an FDR value and bracket indicating significance are automatically populated. If not then the words “No DE result” will appear instead. If you want to restrict the gene expression plot to only display significant genes than toggle the checkbox beneath the plot. You can see the data used to create the plot with the table beneath it or download it by clicking the download graph data button to capture it as a csv.
 
-I have the gene expression plot hosted by an onrender server then piped into this page through an iframe. So if the plot isn't loading correctly it has probably just gone inactive and you can find it here (https://geneexprdash.onrender.com/). Actually, if you visit there then reload this page it should reactivate and load correctly.
+I have the gene expression plot hosted by a <a href="https://render.com/">Render</a> server then piped into this page through an iframe. So if the plot isn’t loading correctly it has probably just gone inactive and you can find it here (<a href="https://geneexprdash.onrender.com/">Gene Expression Dashboard</a>). Actually, if you visit there then first or just reload this page, it should reactivate and load correctly.
 
 <div style="background-color: #f0f0f0; padding: 20px; border-radius: 8px;">
   <div class="side-by-side-container">
@@ -193,7 +205,7 @@ I have the gene expression plot hosted by an onrender server then piped into thi
 
 <h4 style="color: black; text-align: center;">Volcano plot</h4>
 
-```{r volcano1, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE, echo=FALSE}
+```{r volcano, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE, echo=FALSE}
 #Interactive volcano plot
 # Set thresholds
 fdr_cutoff <- 0.001
@@ -283,13 +295,13 @@ ggplotly(volcano, tooltip = "text") %>%
 
 ### Heatmap
 
-Heatmaps provide a visual representation of gene expression across multiple samples, using color gradients to indicate expression levels. Clustering patterns can reveal relationships between genes and conditions, helping to identify co-regulated genes and distinct expression profiles.
+Heatmaps provide a visual representation of gene expression across multiple samples, using color gradients to indicate expression levels. Clustering patterns can reveal relationships between genes and conditions, helping to identify co-regulated genes and distinct expression profiles. The most down-regulated genes in epilepsy patient samples all cluster in the top half of this heatmap together, these genes correspond to the left side of the volcano plot above. Conversely, the most up-regulated genes in the neurons of epilepsy patients cluster to the bottom of the heatmap and show up on the right side of the volcano plot.
 
 #### Up-regulated and Down-regulated genes: **`r status[2]`** vs. **`r status[1]`** (ref.)
 
 Both the top up-regulated and down-regulated genes in the neurons of epilepsy patients. 
 
-```{r upDownHeat1, tidy=TRUE, fig.width=8, fig.height=7, tidy.opts=list(width.cutoff=200), warning=FALSE, echo=FALSE}
+```{r upDownHeat, tidy=TRUE, fig.width=8, fig.height=7, tidy.opts=list(width.cutoff=200), warning=FALSE, echo=FALSE}
 #Log fold change shrinkage for visualization and ranking
 # plotMA(res, ylim=c(-3,3))
 resLFC <- lfcShrink(dds, contrast = contrast, type = 'ashr')
@@ -321,13 +333,13 @@ geneNum <- 40
 selectUp <- assay(rld)[rownames(res05),ordered_samples][1:geneNum,]
 selectUpNames <- rownames(res05)[1:geneNum]
 selectUpNames <- which(rownames(dds)%in%selectUpNames)
-zUp <- (selectUp - rowMeans(selectUp))/sd(selectUp) #z-score
+zUp <- (selectUp - rowMeans(selectUp))/rowSds(selectUp) #z-score
 #Down-regulated genes
 geneNum <- 40
 selectDown <- assay(rld)[rownames(res05),ordered_samples][(length(res05[,1])-geneNum):length(res05[,1]),]
 selectDownNames <- rownames(res05)[(length(res05[,1])-geneNum):length(res05[,1])]
 selectDownNames <- which(rownames(dds)%in%selectDownNames)
-zDown <- (selectDown - rowMeans(selectDown))/sd(selectDown) #z-score
+zDown <- (selectDown - rowMeans(selectDown))/rowSds(selectDown) #z-score
 #Up and Down-regulated genes
 selectUpDownNames <- c(selectUpNames,selectDownNames)
 zUpDown <- rbind(zUp, zDown) #z-score
@@ -351,7 +363,7 @@ pheatmap(zUpDown,
 
 #### Results table: `r status[2]` vs. `r status[1]` (ref.)
 
-```{r resTable1, results='asis', tidy=TRUE, tidy.opts=list(width.cutoff=100), eval=FALSE}
+```{r resTable, results='asis', tidy=TRUE, tidy.opts=list(width.cutoff=100), eval=FALSE}
 #Add significant column. If the FDR is NA or higher than 0.05, than 'No'.
 resTable$Significant <- ifelse(is.na(resTable$FDR) | resTable$FDR >= 0.05, "No", "Yes")
 datTable <- cbind(resTable[,2:7],resTable[,16],resTable[,9],resTable[,11:14])
@@ -369,7 +381,7 @@ write.csv(datTable, file = "../../results/resTable1.csv", row.names = FALSE)
 ```
 
 <p style="font-size: 0.9rem; text-align: center;">
-  <strong>Table 1:</strong> These are the results of the differential expression analysis when comparing, <em>`r status[2]`</em> and <em>`r status[1]`</em> (ref.). The columns are ordered by log2FoldChange with up-regulated genes at the top and down-regulated genes at the bottom. Numeric values listed to 3 significant digits. An FDR is not calculated for non-significant results. You can search for a gene of interest by Ensembl ID or gene name using the search box above.
+  <strong>Table 1:</strong> These are the results of the differential expression analysis when comparing, <strong>`r status[2]`</strong> and <strong>`r status[1]`</strong> (ref.) neurons. The columns are ordered by log2FoldChange with up-regulated genes at the top and down-regulated genes at the bottom. Numeric values listed to 3 significant digits. An FDR is not calculated for non-significant results. You can search for a gene of interest by Ensembl ID or gene name using the search box at the top.
 </p>
 
 ```{=html}
@@ -381,13 +393,13 @@ write.csv(datTable, file = "../../results/resTable1.csv", row.names = FALSE)
 
 ### Gene expression plots
 
-Gene expression plots visualize how a gene's expression varies across conditions or samples, helping identify trends, variability, and potential differential expression. Higher expression levels indicate greater transcript abundance, while statistical comparisons (e.g., boxplots, dot plots) help assess significance between groups.
+These are the exact same type of plot as the right side of the dashboard above, except these are static instead of interactive. Gene expression plots visualize how a gene’s expression varies across conditions or samples, helping identify trends, variability, and potential differential expression. Higher expression levels indicate greater transcript abundance, while statistical comparisons (e.g., boxplots, dot plots) help assess significance between groups.
 
-Let's take a moment to discuss interpretting these figures. It's important to interpret these boxplots carefully, with the small sample size. The boxplot includes an in-built outlier test where any point that is more than 1.5x the IQR above or below the median value will be plotted outside of the range of "whiskers". And generally, it would be preferrable to have a larger sample size than 3 for each group.
+Let’s take a moment to discuss interpretting these figures. It’s important to interpret these boxplots carefully, especially with the small sample size here. The boxplot includes an in-built outlier test where any point that is more than 1.5x the interquartile range (IQR, the top and bottom of the box) above or below the median value will be plotted as an individual datapoint outside of the range of the “whiskers”. Generally, it would be preferrable to have a larger sample size than 3 for each group, but sometimes you have to work with what samples you have access to and this post is for educational purposes remember.
 
 #### Interesting genes: `r status[2]` vs. `r status[1]` (ref.)
 
-``` {r genePlots, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+``` {r genePlots, tidy=TRUE, tidy.opts=list(width.cutoff=200), warning=FALSE}
 #Plot counts: highest foldChange gene
 ens <- rownames(res)[which.max(res$log2FoldChange)]
 plt <- plotCounts(dds, gene = ens, intgroup = 'condition', normalized = TRUE, transform = TRUE, returnData=TRUE)
@@ -396,6 +408,66 @@ padj_value <- format(res[ens, "FDR"],digits=3)
 levels(plt$condition) <- c('Control', 'Epilepsy')
 
 p <- ggplot(plt, aes(x=condition, y=count, color = condition)) + 
+  geom_boxplot(color = 'black', outlier.shape = NA, width = 0.5) +
+  geom_point(cex = 3, position=position_jitter(w=0.1,h=0)) +
+  scale_color_viridis_d(begin = 0.75, end = 0.25, direction = 1) +
+  labs(title = NULL,
+       y = 'Counts',
+       x = "Condition") +
+  theme_bw() +
+  theme(text = element_text(size=10),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'none',
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.line = element_line('black'),
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_log10() +
+  annotate("text", x=1.5, y=y_max*3.00, label=ens) +
+  annotate("text", x=1.5, y=y_max*1.50, label=paste("FDR =",padj_value)) +
+  annotate("segment", x = 1, xend = 2, y = y_max*1.30, yend = y_max*1.30) +
+  annotate("segment", x = 1, xend = 1, y = y_max*1.30, yend = y_max*1.20) +
+  annotate("segment", x = 2, xend = 2, y = y_max*1.30, yend = y_max*1.20)
+
+#Plot counts: gene of interest up-regulated
+geneOfInt <- 'LGR6'
+ens <- geneOfInt
+plt <- plotCounts(dds, gene = geneOfInt, intgroup = 'condition', normalized = TRUE, transform = TRUE, returnData=TRUE)
+y_max <- max(plt$count, na.rm = TRUE)
+padj_value <- format(res[ens, "FDR"],digits=3)
+levels(plt$condition) <- c('Control', 'Epilepsy')
+
+q <- ggplot(plt, aes(x=condition, y=count, color = condition)) + 
+  geom_boxplot(color = 'black', outlier.shape = NA, width = 0.25) +
+  geom_point(cex = 3, position=position_jitter(w=0.1,h=0)) +
+  scale_color_viridis_d(begin = 0.75, end = 0.25, direction = 1) +
+  labs(title = NULL,
+       y = 'Counts',
+       x = "Condition") +
+  theme_bw() +
+  theme(text = element_text(size=10),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'none',
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.line = element_line('black'),
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_log10() +
+  annotate("text", x=1.5, y=y_max*3.00, label=ens) +
+  annotate("text", x=1.5, y=y_max*1.50, label=paste("FDR =",padj_value)) +
+  annotate("segment", x = 1, xend = 2, y = y_max*1.30, yend = y_max*1.30) +
+  annotate("segment", x = 1, xend = 1, y = y_max*1.30, yend = y_max*1.20) +
+  annotate("segment", x = 2, xend = 2, y = y_max*1.30, yend = y_max*1.20)
+
+#Plot counts: gene of interest down-regulated
+geneOfInt <- 'CALB2'
+ens <- geneOfInt
+plt <- plotCounts(dds, gene = ens, intgroup = 'condition', normalized = TRUE, transform = TRUE, returnData=TRUE)
+y_max <- max(plt$count, na.rm = TRUE)
+padj_value <- format(res[ens, "FDR"],digits=3)
+levels(plt$condition) <- c('Control', 'Epilepsy')
+
+r <- ggplot(plt, aes(x=condition, y=count, color = condition)) + 
   geom_boxplot(color = 'black', outlier.shape = NA, width = 0.25) +
   geom_point(cex = 3, position=position_jitter(w=0.1,h=0)) +
   scale_color_viridis_d(begin = 0.75, end = 0.25, direction = 1) +
@@ -424,7 +496,7 @@ y_max <- max(plt$count, na.rm = TRUE)
 padj_value <- format(res[ens, "FDR"],digits=3)
 levels(plt$condition) <- c('Control', 'Epilepsy')
 
-q <- ggplot(plt, aes(x=condition, y=count, color = condition)) + 
+s <- ggplot(plt, aes(x=condition, y=count, color = condition)) + 
   geom_boxplot(color = 'black', outlier.shape = NA, width = 0.25) +
   geom_point(cex = 3, position=position_jitter(w=0.1,h=0)) +
   scale_color_viridis_d(begin = 0.75, end = 0.25, direction = 1) +
@@ -446,64 +518,45 @@ q <- ggplot(plt, aes(x=condition, y=count, color = condition)) +
   annotate("segment", x = 1, xend = 1, y = y_max*1.30, yend = y_max*1.20) +
   annotate("segment", x = 2, xend = 2, y = y_max*1.30, yend = y_max*1.20)
 
-#Plot counts: gene of interest
-geneOfInt <- 'LGR6'
-ens <- geneOfInt
-plt <- plotCounts(dds, gene = geneOfInt, intgroup = 'condition', normalized = TRUE, transform = TRUE, returnData=TRUE)
-y_max <- max(plt$count, na.rm = TRUE)
-padj_value <- format(res[ens, "FDR"],digits=3)
-levels(plt$condition) <- c('Control', 'Epilepsy')
-
-r <- ggplot(plt, aes(x=condition, y=count, color = condition)) + 
-  geom_boxplot(color = 'black', outlier.shape = NA, width = 0.25) +
-  geom_point(cex = 3, position=position_jitter(w=0.1,h=0)) +
-  scale_color_viridis_d(begin = 0.75, end = 0.25, direction = 1) +
-  labs(title = NULL,
-       y = 'Counts',
-       x = "Condition") +
-  theme_bw() +
-  theme(text = element_text(size=10),
-        plot.title = element_text(hjust = 0.5),
-        legend.position = 'none',
-        panel.border = element_blank(),
-        panel.grid = element_blank(),
-        axis.line = element_line('black'),
-        axis.text.x = element_text(angle = 45, hjust = 1)) +
-  scale_y_log10() +
-  annotate("text", x=1.5, y=y_max*3.00, label=ens) +
-  annotate("text", x=1.5, y=y_max*1.50, label=paste("FDR =",padj_value)) +
-  annotate("segment", x = 1, xend = 2, y = y_max*1.30, yend = y_max*1.30) +
-  annotate("segment", x = 1, xend = 1, y = y_max*1.30, yend = y_max*1.20) +
-  annotate("segment", x = 2, xend = 2, y = y_max*1.30, yend = y_max*1.20)
-
-subplot(ggplotly(p), ggplotly(q), ggplotly(r), nrows = 1, margin = 0.05)
+subplot(
+  ggplotly(s), ggplotly(r), ggplotly(q), ggplotly(p), 
+  nrows = 1, 
+  margin = 0.01,
+  widths = c(0.25, 0.25, 0.25, 0.25)
+  )
 ```
 
 </br>
 
+Most down-regulated gene: *ARL6IP1*. This gene has known functions in ER and Mitochondrial organelle homeostasis (<a href="https://doi.org/10.1038/s41586-023-06090-9">Foronda et. al., 2023</a>), and specifically in neurons it is a modulator of glutamate transport (<a href="https://pubmed.ncbi.nlm.nih.gov/18684713/">Akiduki, 2008</a>). As the most down-regulated gene in the dataset is such an important gene for excitatory neuron function, it’s safe to say that these neurons are not doing great.
+
+Gene of interest down-regulated: *CALB2*. The *CALB2* gene (Calbindin 2), encoding the calcium-binding protein Calretinin, plays critical roles in neuronal excitability (<a href="https://doi.org/10.1016/j.biocel.2009.05.007">Camp and Wijesinghe, 2009</a>). Abundant in hippocampus, amygdala, and cerebral cortex, with modified expression linked to temporal lobe epilepsy (<a href="https://doi.org/10.1093/cercor/bht254">Dixit et. al., 2015</a>).
+
+Gene of interest up-regulated: *LGR6*. Is a Wnt-signaling associated stem cell marker with links to cancer (<a href="https://doi.org/10.1038/ng.3957">Huang et. al., 2017</a>). Generally it is not associated with expression in neurons and has very low expression in our control neurons, but sees a huge increase in epilepsy patient neurons in this dataset.
+
+Most up-regulated gene: *MIR376C*. Is a microRNA involved in post-transcriptional gene regulation normally associated with roles in development (<a href="https://doi.org/10.1161/hypertensionaha.111.203489">Fu et. al., 2013</a>) and homeostasis through interacting with SOX6-mediated Wnt signalling (<a href="https://doi.org/10.2147/IJGM.S278538">Cao et. al., 2021</a>). So, we’re already seeing Wnt signalling showing up as a potential dysregulated pathway.
+
+
 ## Discussion
 
-Congrats, you can now hand your report off to collaborators.
+Congrats programmers, you can now hand your report off to collaborators! I’m not going to do a full in-depth review of the results here. The point of this post is to highlight how this interactive report format can facilitate a deeper more intuitive exploration of the dataset than scrolling static excel files. Having said that! We can see some trends that jump right out at us. SNORA genes, are small non-coding nucleolar RNAs that are generally associated with RNA regulation (<a href="https://doi.org/10.1038/s41420-022-01056-8">Huang et. al., 2022</a>) and cellular stress response (<a href="https://doi.org/10.1016/j.cell.2024.06.019">Cheng et. al., 2024</a>). Indicating a big increase in transcriptomic dysregulation and cellular stress in neurons. Our Wnt signaling associated genes are a pretty interesting hit. A cursory submission of the results into <a href="https://cbl-gorilla.cs.technion.ac.il/">GOrilla</a> (results not presented here) reveal similarities to the enrichment analysis results in the original paper. Up-regulated results: Semaphorin-Plexin signaling pathway, gene expression regulation, lipid metabolism pathways. My analysis seems to show a bigger inclusion of RNA metabolism than their analysis did. Down-regulated results: Protein transport, cellular secretion, GABAergic synaptic transmission, axon formation. What is clear, is that there are a lot of results to dig through here. Happy hunting!
 
 </br>
 
-
 ## Methods
 
-**Pai et al. (DOI: 10.1186/s40478-022-01453-1) methods summary**
-
-My methods.
+I am performing a reanalysis of previously published data (<a href="https://doi.org/10.1186/s40478-022-01453-1">Pai et al., 2022</a>). Their study, briefly, collected temporal lobe tissue from patients with medically refractory epilepsy and control donors, preparing samples for immunofluorescence, single-cell dissociation, or Fluorescence-Activated Nuclei Sorting (FANS). Using an enhanced FANS protocol, they isolated nuclei from NEUN+, OLIG2+, and PAX6+ populations and preserved RNA from sorted nuclei for downstream analysis. Total nuclear RNA was extracted, depleted of rRNA, and used to generate libraries for paired-end sequencing on an Illumina HiSeq 2500 (50 bp pair-end sequencing, 38–50 million paired-end reads/sample). They uploaded their data as fastq files to NCBI’s Gene Expression Omnibus (GEO accession: <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE140393">GSE140393</a>), which is were I accessed the data on 3rd, March 2025. Sequencing reads were aligned to the human genome (ensemble: <a href="https://ensembl.org/Homo_sapiens/Info/Index">GRCh38 release 113</a>) using STAR with default settings, and quantified gene-level expression using STAR’s ‘--quantMode GeneCounts’ option. Sorted Bam files were produced with Samtools.
 
 ### Scripts
 
-This is the R script that I used for this analysis, it has been ported into this report file. The following code is not executed, but is presented for transparency and reproducibility. Again, this is only the script that I used for the differential expression analysis. If you want all of the scripts for the full analysis including the preprocessing of the data before the differential expression, you can find it on my github repository for this project here: <a href="https://github.com/rpevey/rnaQuest">RNA Quest at GitHub</a>.
+This is the R script that I used for this analysis, it has been ported into this report file. The following code is not executed, but is presented for transparency and reproducibility. Again, this is only the script that I used for the differential expression analysis. If you want all of the scripts for the full analysis including the downloading and preprocessing of the data before the differential expression, you can find it on my github repository for this project here: <a href="https://github.com/rpevey/rnaQuest">RNA Quest at GitHub</a>.
 
 ```{r DEscript, file='../../bin/rnaQuest_DESeq.R', eval=FALSE}
 ```
 
 ### Exploratory data analysis
 
-Exploratory Data Analysis (EDA) is the process of visually and statistically examining data to identify patterns, trends, and potential issues before formal analysis. It helps ensure data quality, detect outliers, and guide analytical decisions. If you aren't doing the analyses yourself, you might normally not even be presented these figures. But they're important sanity checks to ensure data quality. I'm presenting this here, but these steps were performed before the results presented above. I'm putting this here for the sake of completeness.
+Exploratory Data Analysis (EDA) is the process of visually and statistically examining data to identify patterns, trends, and potential issues before formal analysis. It helps ensure data quality, detect outliers, and guide analytical decisions. If you aren’t doing the analyses yourself, you might normally not even be presented these figures. But they’re important sanity checks to ensure data quality. These steps were performed before the results presented above, but I’m presenting them here for the sake of completeness.
 
 #### All samples total gene counts
 
@@ -545,11 +598,11 @@ title('Dispersion estimates')
 
 #### Dimensional reduction analyses
 
-In a way a lot of omics analysis in really a game of dimensional reduction. You start off with a huge dataset where you have gene expression data for roughly 20,000 genes, each of them it's own dimension. But some of the analysis techniques and especially visualizations must be done on a lower number of dimensions, a small handful or maybe even just two.
+In a way, a lot of omics analysis in really a game of dimensional reduction. You start off with a huge dataset where you have gene expression data for roughly 20,000 genes, each of them it’s own dimension. But some of the analysis techniques, such as clustering, and especially visualizations must be done on a lower number of dimensions, a small handful or maybe even just two.
 
-In comes Principal Component Analysis (PCA) and Multidimensional Scaling (MDS) plots, they serve similar purposes and are interpretted in roughly the same way for our purposes here. PCA and MDS are dimensionality reduction techniques used in RNA-Seq analysis to visualize patterns of similarity or difference between samples. They transform high-dimensional gene expression data into a smaller number of dimensions, in this case two. Thereby making it easier to detect clustering by condition, batch effects, or outliers. These plots provide an intuitive overview of global transcriptional variation across the dataset.
+In comes Principal Component Analysis (PCA) and Multidimensional Scaling (MDS) plots, they serve similar functions to each other and are interpretted in roughly the same way for our purposes here. PCA and MDS are dimensionality reduction techniques used in RNA-Seq analysis to visualize patterns of similarity or difference between samples. They transform high-dimensional gene expression data into a smaller number of dimensions, typically two. Thereby making it easier to detect clustering by condition, batch effects, or outliers. These plots provide an intuitive overview of global transcriptional variation across the dataset.
 
-They differ in how they reduce dimensions. Critically, MDS is plotted in a way such that distances between samples are preserved as much as possible in the projection to lower dimensions. This is similar to the difference between T-SNE plots and UMAP plots, where the distance between clusters is more meaningful in UMAPs while it lacks interpretability in T-SNE plots. However, since MDS is based on preserving pair-wise distance you don't natively get a measure of how much 'information' each dimension carries. That's in contrast to the measure of variance explained by each dimension that you get out of PCA plots. In that way they both have benefits and are a good compliment to each other.
+They differ in how they reduce dimensions. Critically, MDS is plotted in a way such that distances between samples are preserved as much as possible in the projection to lower dimensions. This is similar to the difference between T-SNE plots and UMAP plots, where the distance between clusters is more meaningful in UMAPs while it lacks interpretability in T-SNE plots. However, since MDS is based on preserving pair-wise distance you don’t natively get a measure of how much ‘information’ each dimension carries. That’s in contrast to the measure of variance explained by each dimension that you get out of PCA plots. In that way they both have benefits and are a good compliment to each other.
 
 
 ```{r dimReduce, results='asis', tidy=TRUE, tidy.opts=list(width.cutoff=100), fig.show='hold', out.width='50%', fig.align='default', warning=FALSE}
@@ -587,12 +640,13 @@ ggplot(mds, aes(X1,X2,color=condition)) +
 
 We can see here that there are roughly the same number of up-regulated as down regulated genes as was noted in the results summary and could be seen in the volcano plot.  `r length(which(res05$log2FoldChange > 0))` are up-regulated, `r length(which(res05$log2FoldChange < 0))` are down-regulated. 
 
-```{r direction1, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+```{r direction, tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
 bar <- data.frame(direction = c('Down','Up'), genes = c(length(which(res05$log2FoldChange < 0)),length(which(res05$log2FoldChange > 0))))
 
 #Create barplot
 ggplot(bar, aes(x=direction, y=genes, fill=direction)) +
-  geom_col(position = 'stack') +
+  geom_col(position = 'stack',
+           width = 0.25) +
   scale_fill_viridis(2, begin = 0.3, end = 0.7, direction = 1, discrete = TRUE) +
   labs(x = NULL, 
     y = "Number of genes", 
@@ -659,11 +713,13 @@ treemap(biotype_sig,
 ```
 
 
+##### *X*^2^ Goodness of fit table
+
 ```{=html}
-<div style="background: #f0f0f0; padding: 1em; border-radius: 8px; max-width: 900px; margin: 2em auto;">
+<div style="background: #f0f0f0; padding: 1em; border-radius: 8px; max-width: 550px; margin: 2em auto;">
 ```
 
-```{r treeTable1, results='asis', tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
+```{r treeTable, results='asis', tidy=TRUE, tidy.opts=list(width.cutoff=100), warning=FALSE}
 biotype <- merge(biotype_all, biotype_sig, by = 'Var1')
 colnames(biotype) <- c('biotype','AllGenes','SigGenes')
 biotype <- biotype[order(biotype$AllGenes, decreasing = TRUE),]
@@ -680,9 +736,16 @@ biotype <- biotype[,c(1,2,4,3,5)]
 # Compute total counts
 total_all <- sum(biotype$AllGenes)  # Total genes
 total_sig <- sum(biotype$SigGenes)  # Total significant genes
-# Rename columns
+
+# Duplicate dataframe for table and rename columns for readability
 biotable <- biotype
 colnames(biotable) <- c("Biotype", "All Genes", "Proportion (All)", "Significant Genes", "Proportion (Sig.)")
+
+# Compute expected counts under the null hypothesis
+biotype$Expected <- total_sig * (biotype$AllGenes / total_all)
+chi_sq_test <- chisq.test(biotype$SigGenes, p = biotype$AllGenes / total_all, rescale.p = TRUE)
+# Print results
+# print(chi_sq_test)
 
 # Create the static table
 biotable %>%
@@ -701,19 +764,15 @@ biotable %>%
     font_size = 13,
     position = "center"
   ) %>%
+  column_spec(1, border_left = TRUE, border_right = TRUE) %>%
   column_spec(2:5, width = "8em", border_left = TRUE, border_right = TRUE)
-# Compute expected counts under the null hypothesis
-biotype$Expected <- total_sig * (biotype$AllGenes / total_all)
-chi_sq_test <- chisq.test(biotype$SigGenes, p = biotype$AllGenes / total_all, rescale.p = TRUE)
-# Print results
-# print(chi_sq_test)
 ```
 
 ```{=html}
 </div>
 ```
 
-There is a statistically significant difference in the proportion of gene types when comparing the full dataset to the subset of differentially expressed genes (X^2^ = `r round(chi_sq_test$statistic, digits = 3)`, df = `r chi_sq_test$parameter`, *p*-value = `r formatC(chi_sq_test$p.value, format = 'e', digits = 3)`).
+There is a statistically significant difference in the proportion of gene types when comparing the full dataset to the subset of differentially expressed genes (*X*^2^ = `r round(chi_sq_test$statistic, digits = 3)`, df = `r chi_sq_test$parameter`, *p*-value = `r formatC(chi_sq_test$p.value, format = 'e', digits = 3)`).
 
 ### Session info
 

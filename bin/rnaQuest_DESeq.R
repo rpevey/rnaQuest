@@ -671,5 +671,49 @@ final_df %>%
 write_csv(final_df, "results/dash_expression_data.csv")
 
 
+###REDO
+# Use the raw counts from the DESeqDataSet
+counts_df <- as.data.frame(counts(dds, normalized = TRUE))  # or use normalized=FALSE if you want raw library counts
+counts_df$gene <- rownames(counts_df)
+
+# Tidy into long format
+#library(tidyr)
+#library(dplyr)
+
+counts_long <- counts_df %>%
+  pivot_longer(-gene, names_to = "sample", values_to = "counts")
+
+# Get rlog-transformed values (optional for side-by-side comparison)
+rld_long <- as.data.frame(assay(rld)) %>%
+  mutate(gene = rownames(.)) %>%
+  pivot_longer(-gene, names_to = "sample", values_to = "rlog")
+
+# Join the two expression versions
+expression_df <- left_join(counts_long, rld_long, by = c("gene", "sample"))
+
+# Add DE results (log2FC and FDR)
+de_results <- as.data.frame(res)
+de_results$gene <- rownames(de_results)
+
+# Remove duplicates if present
+de_results <- de_results[!duplicated(de_results$gene), c("gene", "log2FoldChange", "padj")]
+colnames(de_results)[3] <- "FDR"
+
+# Add sample metadata
+sample_meta <- as.data.frame(colData(dds)) %>%
+  mutate(sample = rownames(.))
+
+# Merge all components
+final_df <- expression_df %>%
+  left_join(de_results, by = "gene") %>%
+  left_join(sample_meta, by = "sample") %>%
+  select(sample, gene, counts, rlog, log2FoldChange, FDR, everything())
+head(final_df)
+
+# Export
+write.csv(final_df, "results/dash_expression_data.csv", row.names = FALSE)
+
+
+
 #Gene set enrichment analysis
 #Coming soon!
